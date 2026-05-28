@@ -1,4 +1,5 @@
 mod api;
+mod auth;
 mod config;
 mod db;
 mod docker;
@@ -7,7 +8,7 @@ mod models;
 
 use std::sync::Arc;
 
-use axum::{routing::get, routing::post, routing::delete, Router};
+use axum::{middleware, routing::get, routing::post, routing::delete, Router};
 use tower_http::cors::{Any, CorsLayer};
 
 use config::Config;
@@ -18,7 +19,7 @@ use docker::manager::DockerManager;
 #[derive(Clone)]
 pub struct AppState {
     pub db: Database,
-    pub docker_manager: Arc<DockerManager>,
+    pub docker_manager: Option<Arc<DockerManager>>,
     pub config: Config,
 }
 
@@ -46,12 +47,11 @@ async fn main() {
 
     let app_state = AppState {
         db: db.clone(),
-        docker_manager: docker_manager.clone(),
+        docker_manager: Some(docker_manager.clone()),
         config: config.clone(),
     };
 
-    // 启动生命周期管理器
-    let lifecycle_manager = LifecycleManager::new(db.clone(), docker_manager.clone());
+    let lifecycle_manager = LifecycleManager::new(db.clone(), Some(docker_manager.clone()));
     tokio::spawn(async move {
         lifecycle_manager.start().await;
     });
@@ -80,6 +80,10 @@ async fn main() {
             "/api/containers/{id}/logs",
             get(api::ws::container_logs_ws),
         )
+        .layer(middleware::from_fn_with_state(
+            app_state.clone(),
+            auth::api_key_auth,
+        ))
         .layer(cors)
         .with_state(app_state);
 

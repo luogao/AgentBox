@@ -7,6 +7,7 @@ pub enum AppError {
     DatabaseError(String),
     NotFound(String),
     BadRequest(String),
+    Unauthorized(String),
 }
 
 impl std::fmt::Display for AppError {
@@ -16,6 +17,7 @@ impl std::fmt::Display for AppError {
             AppError::DatabaseError(e) => write!(f, "Database error: {}", e),
             AppError::NotFound(e) => write!(f, "Not found: {}", e),
             AppError::BadRequest(e) => write!(f, "Bad request: {}", e),
+            AppError::Unauthorized(e) => write!(f, "Unauthorized: {}", e),
         }
     }
 }
@@ -29,6 +31,7 @@ impl IntoResponse for AppError {
             AppError::DatabaseError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.clone()),
             AppError::NotFound(e) => (StatusCode::NOT_FOUND, e.clone()),
             AppError::BadRequest(e) => (StatusCode::BAD_REQUEST, e.clone()),
+            AppError::Unauthorized(e) => (StatusCode::UNAUTHORIZED, e.clone()),
         };
         tracing::error!("Error: {}", self);
         (status, message).into_response()

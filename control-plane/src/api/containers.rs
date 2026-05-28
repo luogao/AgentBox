@@ -35,8 +35,12 @@ pub async fn create_container(
     let cpu_limit = payload.cpu_limit.unwrap_or_else(|| "2".to_string());
     let memory_limit = payload.memory_limit.unwrap_or_else(|| "4Gi".to_string());
 
-    let docker_id = state
+    let docker_manager = state
         .docker_manager
+        .as_ref()
+        .ok_or_else(|| AppError::DockerError("Docker not configured".to_string()))?;
+
+    let docker_id = docker_manager
         .create_container(
             &docker_name,
             &state.config.agent_image,
@@ -88,8 +92,10 @@ pub async fn delete_container(
     let container = state.db.get_container(&id).await?;
 
     if let Some(docker_id) = &container.docker_id {
-        let _ = state.docker_manager.stop_container(docker_id).await;
-        let _ = state.docker_manager.remove_container(docker_id).await;
+        if let Some(docker_manager) = &state.docker_manager {
+            let _ = docker_manager.stop_container(docker_id).await;
+            let _ = docker_manager.remove_container(docker_id).await;
+        }
     }
 
     state.db.delete_container(&id).await?;

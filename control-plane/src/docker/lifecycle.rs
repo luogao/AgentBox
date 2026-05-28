@@ -7,11 +7,11 @@ use crate::models::container::ContainerStatus;
 
 pub struct LifecycleManager {
     db: Database,
-    docker_manager: Arc<DockerManager>,
+    docker_manager: Option<Arc<DockerManager>>,
 }
 
 impl LifecycleManager {
-    pub fn new(db: Database, docker_manager: Arc<DockerManager>) -> Self {
+    pub fn new(db: Database, docker_manager: Option<Arc<DockerManager>>) -> Self {
         Self {
             db,
             docker_manager,
@@ -53,7 +53,9 @@ impl LifecycleManager {
                     container.idle_timeout
                 );
                 if let Some(docker_id) = &container.docker_id {
-                    let _ = self.docker_manager.stop_container(docker_id).await;
+                    if let Some(dm) = &self.docker_manager {
+                        let _ = dm.stop_container(docker_id).await;
+                    }
                 }
                 self.db
                     .update_status(&container.id, ContainerStatus::Stopped.to_string().as_str())
@@ -70,7 +72,9 @@ impl LifecycleManager {
                     container.max_lifetime
                 );
                 if let Some(docker_id) = &container.docker_id {
-                    let _ = self.docker_manager.remove_container(docker_id).await;
+                    if let Some(dm) = &self.docker_manager {
+                        let _ = dm.remove_container(docker_id).await;
+                    }
                 }
                 self.db
                     .update_status(&container.id, ContainerStatus::Stopped.to_string().as_str())

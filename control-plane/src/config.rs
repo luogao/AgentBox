@@ -5,6 +5,7 @@ pub struct Config {
     pub database_url: String,
     pub server_addr: String,
     pub agent_image: String,
+    pub api_key: Option<String>,
 }
 
 impl Config {
@@ -16,6 +17,7 @@ impl Config {
                 .unwrap_or_else(|_| "0.0.0.0:8080".to_string()),
             agent_image: env::var("AGENT_IMAGE")
                 .unwrap_or_else(|_| "agent-sandbox:latest".to_string()),
+            api_key: env::var("API_KEY").ok().filter(|k| !k.is_empty()),
         }
     }
 }
