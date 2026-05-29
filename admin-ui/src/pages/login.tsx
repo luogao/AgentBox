@@ -1,13 +1,16 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/context/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Container } from 'lucide-react'
 
 export function LoginPage() {
+  const { t } = useTranslation()
   const { login } = useAuth()
   const navigate = useNavigate()
   const [key, setKey] = useState('')
@@ -18,7 +21,7 @@ export function LoginPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!key.trim()) {
-      setError('Please enter an API key')
+      setError(t('Please enter an API key'))
       return
     }
     setLoading(true)
@@ -29,7 +32,7 @@ export function LoginPage() {
         headers: { Authorization: `Bearer ${key}` },
       })
       if (res.status === 401) {
-        setError('Invalid API key')
+        setError(t('Invalid API key'))
         return
       }
       login(key, remember)
@@ -47,36 +50,34 @@ export function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <Container className="mx-auto h-10 w-10 text-primary" />
-          <CardTitle className="mt-2">AgentBox Admin</CardTitle>
+          <CardTitle className="mt-2">{t('AgentBox Admin')}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="apikey">API Key</Label>
+              <Label htmlFor="apikey">{t('API Key')}</Label>
               <Input
                 id="apikey"
                 type="password"
-                placeholder="Enter your API key"
+                placeholder={t('Enter your API key')}
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
                 autoFocus
               />
             </div>
             <div className="flex items-center gap-2">
-              <input
+              <Checkbox
                 id="remember"
-                type="checkbox"
                 checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                className="h-4 w-4 rounded border-input"
+                onCheckedChange={setRemember}
               />
               <Label htmlFor="remember" className="text-xs font-normal">
-                Remember me
+                {t('Remember me')}
               </Label>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Connecting...' : 'Connect'}
+              {loading ? t('Connecting...') : t('Connect')}
             </Button>
           </form>
         </CardContent>

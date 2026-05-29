@@ -1,21 +1,24 @@
 import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { LayoutDashboard, Container, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/context/auth-context'
 import { Button } from '@/components/ui/button'
+import { LanguageSwitcher } from './language-switcher'
 
 const links = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/containers', label: 'Containers', icon: Container },
+  { to: '/', labelKey: 'Dashboard', icon: LayoutDashboard },
+  { to: '/containers', labelKey: 'Containers', icon: Container },
 ]
 
 export function Sidebar() {
+  const { t } = useTranslation()
   const { logout, apiKey } = useAuth()
 
   return (
     <aside className="flex h-full w-56 flex-col border-r bg-sidebar-background">
       <div className="flex h-14 items-center border-b px-4">
-        <h1 className="text-lg font-bold text-sidebar-accent-foreground">AgentBox</h1>
+        <h1 className="text-lg font-bold text-sidebar-accent-foreground">{t('AgentBox')}</h1>
       </div>
       <nav className="flex-1 space-y-1 p-2">
         {links.map((link) => (
@@ -33,15 +36,18 @@ export function Sidebar() {
             }
           >
             <link.icon className="h-4 w-4" />
-            {link.label}
+            {t(link.labelKey)}
           </NavLink>
         ))}
       </nav>
       {apiKey && (
-        <div className="border-t p-2">
+        <div className="border-t p-2 space-y-1">
+          <div className="px-1">
+            <LanguageSwitcher />
+          </div>
           <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-foreground" onClick={logout}>
             <LogOut className="mr-2 h-4 w-4" />
-            Disconnect
+            {t('Disconnect')}
           </Button>
         </div>
       )}

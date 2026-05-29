@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Plus, Search, ChevronLeft, ChevronRight, ArrowUpDown, Trash2 } from 'lucide-react'
 import { useContainers, useDeleteContainer } from '@/hooks/use-containers'
 import { Header } from '@/components/layout/header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { StatusBadge } from '@/components/containers/status-badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,6 +14,7 @@ import { Dialog, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/
 import { formatDate } from '@/lib/utils'
 
 export function ContainerListPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -45,11 +47,11 @@ export function ContainerListPage() {
   return (
     <div>
       <Header
-        title="Containers"
+        title={t('Containers')}
         actions={
           <Button size="sm" onClick={() => navigate('/containers/new')}>
             <Plus className="h-4 w-4" />
-            Create
+            {t('Create')}
           </Button>
         }
       />
@@ -58,7 +60,7 @@ export function ContainerListPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by task or ID..."
+              placeholder={t('Search by task or ID...')}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value)
@@ -68,18 +70,22 @@ export function ContainerListPage() {
             />
           </div>
           <Select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value)
+            value={statusFilter || undefined}
+            onValueChange={(value) => {
+              setStatusFilter(value === 'all' ? '' : value)
               setPage(1)
             }}
-            className="w-40"
           >
-            <option value="">All Status</option>
-            <option value="Running">Running</option>
-            <option value="Idle">Idle</option>
-            <option value="Stopped">Stopped</option>
-            <option value="Failed">Failed</option>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder={t('All Status')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('All Status')}</SelectItem>
+              <SelectItem value="Running">{t('Running')}</SelectItem>
+              <SelectItem value="Idle">{t('Idle')}</SelectItem>
+              <SelectItem value="Stopped">{t('Stopped')}</SelectItem>
+              <SelectItem value="Failed">{t('Failed')}</SelectItem>
+            </SelectContent>
           </Select>
         </div>
 
@@ -94,23 +100,23 @@ export function ContainerListPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[120px]">ID</TableHead>
+                  <TableHead className="w-[120px]">{t('ID')}</TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => toggleSort('task')}>
                     <span className="flex items-center gap-1">
-                      Task <ArrowUpDown className="h-3 w-3" />
+                      {t('Task')} <ArrowUpDown className="h-3 w-3" />
                     </span>
                   </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => toggleSort('status')}>
                     <span className="flex items-center gap-1">
-                      Status <ArrowUpDown className="h-3 w-3" />
+                      {t('Status')} <ArrowUpDown className="h-3 w-3" />
                     </span>
                   </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => toggleSort('created_at')}>
                     <span className="flex items-center gap-1">
-                      Created <ArrowUpDown className="h-3 w-3" />
+                      {t('Created')} <ArrowUpDown className="h-3 w-3" />
                     </span>
                   </TableHead>
-                  <TableHead className="w-[80px]">Actions</TableHead>
+                  <TableHead className="w-[80px]">{t('Actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -147,7 +153,11 @@ export function ContainerListPage() {
 
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                Page {page} of {totalPages} ({data.total} total)
+                {t('Page {{page}} of {{totalPages}} ({{total}} total)', {
+                  page,
+                  totalPages,
+                  total: data.total,
+                })}
               </span>
               <div className="flex gap-2">
                 <Button
@@ -156,7 +166,7 @@ export function ContainerListPage() {
                   disabled={page <= 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                 >
-                  <ChevronLeft className="h-4 w-4" /> Prev
+                  <ChevronLeft className="h-4 w-4" /> {t('Prev')}
                 </Button>
                 <Button
                   variant="outline"
@@ -164,7 +174,7 @@ export function ContainerListPage() {
                   disabled={page >= totalPages}
                   onClick={() => setPage((p) => p + 1)}
                 >
-                  Next <ChevronRight className="h-4 w-4" />
+                  {t('Next')} <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -172,10 +182,10 @@ export function ContainerListPage() {
         ) : (
           <div className="py-16 text-center">
             <p className="text-sm text-muted-foreground">
-              {search || statusFilter ? 'No containers match your filters.' : 'No containers yet.'}
+              {search || statusFilter ? t('No containers match your filters.') : t('No containers yet.')}
             </p>
             <Button variant="link" onClick={() => navigate('/containers/new')}>
-              Create your first container
+              {t('Create your first container')}
             </Button>
           </div>
         )}
@@ -184,14 +194,14 @@ export function ContainerListPage() {
       <Dialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <DialogClose onClick={() => setDeleteId(null)} />
         <DialogHeader>
-          <DialogTitle>Delete Container</DialogTitle>
+          <DialogTitle>{t('Delete Container')}</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Are you sure? This will stop and remove the container permanently.
+          {t('Are you sure? This will stop and remove the container permanently.')}
         </p>
         <div className="mt-4 flex justify-end gap-2">
           <Button variant="outline" onClick={() => setDeleteId(null)}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button
             variant="destructive"
@@ -203,7 +213,7 @@ export function ContainerListPage() {
             }}
             disabled={deleteMutation.isPending}
           >
-            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            {deleteMutation.isPending ? t('Deleting...') : t('Delete')}
           </Button>
         </div>
       </Dialog>

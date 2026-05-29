@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Plus, Trash2 } from 'lucide-react'
 import { useCreateContainer } from '@/hooks/use-containers'
 import { Header } from '@/components/layout/header'
@@ -10,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 
 export function CreateContainerPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const mutation = useCreateContainer()
 
@@ -45,12 +47,12 @@ export function CreateContainerPage() {
     setError('')
 
     if (!task.trim()) {
-      setError('Task is required')
+      setError(t('Task is required'))
       return
     }
     const repos = skillRepos.filter((r) => r.trim())
     if (repos.length === 0) {
-      setError('At least one skill repo is required')
+      setError(t('At least one skill repo is required'))
       return
     }
 
@@ -81,16 +83,16 @@ export function CreateContainerPage() {
 
   return (
     <div>
-      <Header title="Create Container" />
+      <Header title={t('Create Container')} />
       <div className="mx-auto max-w-2xl p-6">
         <Card>
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="task">Task *</Label>
+                <Label htmlFor="task">{t('Task *')}</Label>
                 <Textarea
                   id="task"
-                  placeholder="e.g. Review code PR #42"
+                  placeholder={t('e.g. Review code PR #42')}
                   value={task}
                   onChange={(e) => setTask(e.target.value)}
                   rows={3}
@@ -98,11 +100,11 @@ export function CreateContainerPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Skill Repos *</Label>
+                <Label>{t('Skill Repos *')}</Label>
                 {skillRepos.map((repo, i) => (
                   <div key={i} className="flex gap-2">
                     <Input
-                      placeholder="https://github.com/org/skills.git"
+                      placeholder={t('https://github.com/org/skills.git')}
                       value={repo}
                       onChange={(e) => {
                         const next = [...skillRepos]
@@ -118,42 +120,42 @@ export function CreateContainerPage() {
                   </div>
                 ))}
                 <Button variant="outline" size="sm" type="button" onClick={addSkillRepo}>
-                  <Plus className="h-4 w-4" /> Add Repo
+                  <Plus className="h-4 w-4" /> {t('Add Repo')}
                 </Button>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="branch">Skill Branch</Label>
+                  <Label htmlFor="branch">{t('Skill Branch')}</Label>
                   <Input id="branch" value={skillBranch} onChange={(e) => setSkillBranch(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cpu">CPU Limit</Label>
+                  <Label htmlFor="cpu">{t('CPU Limit')}</Label>
                   <Input id="cpu" value={cpuLimit} onChange={(e) => setCpuLimit(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="memory">Memory Limit</Label>
-                  <Input id="memory" value={memoryLimit} onChange={(e) => setMemoryLimit(e.target.value)} placeholder="e.g. 4Gi, 512Mi" />
+                  <Label htmlFor="memory">{t('Memory Limit')}</Label>
+                  <Input id="memory" value={memoryLimit} onChange={(e) => setMemoryLimit(e.target.value)} placeholder={t('e.g. 4Gi, 512Mi')} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="idle">Idle Timeout (s)</Label>
+                  <Label htmlFor="idle">{t('Idle Timeout (s)')}</Label>
                   <Input id="idle" type="number" value={idleTimeout} onChange={(e) => setIdleTimeout(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lifetime">Max Lifetime (s)</Label>
+                  <Label htmlFor="lifetime">{t('Max Lifetime (s)')}</Label>
                   <Input id="lifetime" type="number" value={maxLifetime} onChange={(e) => setMaxLifetime(e.target.value)} />
                 </div>
               </div>
 
               <details className="group">
                 <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
-                  Environment Variables
+                  {t('Environment Variables')}
                 </summary>
                 <div className="mt-3 space-y-2">
                   {envKeys.map((_, i) => (
                     <div key={i} className="flex gap-2">
                       <Input
-                        placeholder="KEY"
+                        placeholder={t('KEY')}
                         value={envKeys[i]}
                         onChange={(e) => {
                           const next = [...envKeys]
@@ -163,7 +165,7 @@ export function CreateContainerPage() {
                         className="w-1/3"
                       />
                       <Input
-                        placeholder="value"
+                        placeholder={t('value')}
                         value={envValues[i]}
                         onChange={(e) => {
                           const next = [...envValues]
@@ -177,7 +179,7 @@ export function CreateContainerPage() {
                     </div>
                   ))}
                   <Button variant="outline" size="sm" type="button" onClick={addEnv}>
-                    <Plus className="h-4 w-4" /> Add Variable
+                    <Plus className="h-4 w-4" /> {t('Add Variable')}
                   </Button>
                 </div>
               </details>
@@ -189,10 +191,10 @@ export function CreateContainerPage() {
 
               <div className="flex justify-end gap-3 pt-2">
                 <Button variant="outline" type="button" onClick={() => navigate('/containers')}>
-                  Cancel
+                  {t('Cancel')}
                 </Button>
                 <Button type="submit" disabled={mutation.isPending}>
-                  {mutation.isPending ? 'Creating...' : 'Create Container'}
+                  {mutation.isPending ? t('Creating...') : t('Create Container')}
                 </Button>
               </div>
             </form>

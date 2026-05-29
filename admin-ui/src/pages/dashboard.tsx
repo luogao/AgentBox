@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { LayoutDashboard, Play, Clock, StopCircle, AlertTriangle, Box } from 'lucide-react'
 import { useStats } from '@/hooks/use-stats'
 import { useContainers } from '@/hooks/use-containers'
@@ -11,14 +12,15 @@ import { formatDate } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
 const statCards = [
-  { key: 'total', label: 'Total', icon: Box, color: 'text-blue-600' },
-  { key: 'Running', label: 'Running', icon: Play, color: 'text-green-600' },
-  { key: 'Idle', label: 'Idle', icon: Clock, color: 'text-yellow-600' },
-  { key: 'Stopped', label: 'Stopped', icon: StopCircle, color: 'text-gray-600' },
-  { key: 'Failed', label: 'Failed', icon: AlertTriangle, color: 'text-red-600' },
+  { key: 'total', labelKey: 'Total', icon: Box, color: 'text-blue-600' },
+  { key: 'Running', labelKey: 'Running', icon: Play, color: 'text-green-600' },
+  { key: 'Idle', labelKey: 'Idle', icon: Clock, color: 'text-yellow-600' },
+  { key: 'Stopped', labelKey: 'Stopped', icon: StopCircle, color: 'text-gray-600' },
+  { key: 'Failed', labelKey: 'Failed', icon: AlertTriangle, color: 'text-red-600' },
 ]
 
 export function DashboardPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { data: stats, isLoading: statsLoading } = useStats()
   const { data: containers, isLoading: containersLoading } = useContainers({
@@ -29,15 +31,15 @@ export function DashboardPage() {
 
   return (
     <div>
-      <Header title="Dashboard" />
+      <Header title={t('Dashboard')} />
       <div className="p-6 space-y-6">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-          {statCards.map(({ key, label, icon: Icon, color }) => (
+          {statCards.map(({ key, labelKey, icon: Icon, color }) => (
             <Card key={key}>
               <CardContent className="flex items-center gap-4 p-4">
                 <Icon className={`h-8 w-8 ${color}`} />
                 <div>
-                  <p className="text-xs text-muted-foreground">{label}</p>
+                  <p className="text-xs text-muted-foreground">{t(labelKey)}</p>
                   {statsLoading ? (
                     <Skeleton className="h-6 w-12" />
                   ) : (
@@ -53,9 +55,9 @@ export function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Recent Containers</CardTitle>
+            <CardTitle>{t('Recent Containers')}</CardTitle>
             <Button variant="outline" size="sm" onClick={() => navigate('/containers')}>
-              View All
+              {t('View All')}
             </Button>
           </CardHeader>
           <CardContent>
@@ -69,10 +71,10 @@ export function DashboardPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Task</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
+                    <TableHead>{t('ID')}</TableHead>
+                    <TableHead>{t('Task')}</TableHead>
+                    <TableHead>{t('Status')}</TableHead>
+                    <TableHead>{t('Created')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -96,13 +98,14 @@ export function DashboardPage() {
               </Table>
             ) : (
               <p className="py-8 text-center text-sm text-muted-foreground">
-                No containers yet.{' '}
-                <button
-                  className="text-primary underline"
+                {t('No containers yet.')}{' '}
+                <Button
+                  variant="link"
+                  size="sm"
                   onClick={() => navigate('/containers/new')}
                 >
-                  Create one
-                </button>
+                  {t('Create one')}
+                </Button>
               </p>
             )}
           </CardContent>
