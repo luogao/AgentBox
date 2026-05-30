@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, RefreshCw, Trash2 } from 'lucide-react'
 import { useContainer, useDeleteContainer } from '@/hooks/use-containers'
+import { useToast } from '@/context/toast-context'
 import { Header } from '@/components/layout/header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,11 +17,16 @@ export function ContainerDetailPage() {
   const navigate = useNavigate()
   const { data: container, isLoading, isError } = useContainer(id)
   const deleteMutation = useDeleteContainer()
+  const toast = useToast()
 
   const handleDelete = () => {
     if (id) {
       deleteMutation.mutate(id, {
-        onSuccess: () => navigate('/containers'),
+        onSuccess: () => {
+          toast.success(t('Container deleted successfully'))
+          navigate('/containers')
+        },
+        onError: () => toast.error(t('Failed to delete container')),
       })
     }
   }

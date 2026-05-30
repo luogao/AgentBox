@@ -56,29 +56,38 @@ AgentBox - 基于 Rust + Docker 的 AI Agent 运行沙箱平台。为 Claude Age
 
 - Rust 1.70+
 - Docker Desktop / OrbStack
+- Node.js 20+（仅开发 admin-ui 时需要）
 
-### 本地运行
+### 一键启动（推荐）
 
 ```bash
-# 克隆项目
 git clone <repo-url>
 cd agentbox
-
-# 编译
-cargo build --release
-
-# 启动 Control Plane
-DATABASE_URL="sqlite:./data/agent_sandbox.db?mode=rwc" \
-RUST_LOG=info \
-cargo run -p control-plane
+make setup    # 编译 Rust + 构建所有 Docker 镜像 + 启动服务
 ```
+
+启动后：
+- Control Plane API: `http://localhost:8080`
+- Admin UI: `http://localhost:3000`
+
+### 本地开发
+
+```bash
+# 安装前端依赖
+cd admin-ui && npm install && cd ..
+
+# 启动后端 + 前端开发服务器（热更新）
+make dev
+```
+
+- Control Plane: `http://localhost:8080`
+- Admin UI (dev): `http://localhost:5173`
 
 ### Docker 运行
 
 ```bash
-# 构建镜像
-cargo build --release
-docker build -t agent-sandbox:latest -f agent-image/Dockerfile .
+# 构建所有镜像（含 agent-sandbox）
+make build
 
 # 启动全部（control-plane + admin-ui）
 docker compose up -d
@@ -434,13 +443,45 @@ docker build -t agent-sandbox:latest -f agent-image/Dockerfile .
 - [x] 收紧 CORS 默认值（localhost only，可配 `ALLOWED_ORIGINS`）
 - [x] Sidecar 接入 Claude SDK（cc-sdk 0.8，SSE 流式 query）
 - [x] Admin UI 管理界面（容器 CRUD + 实时日志流）
+- [x] 容器列表/分页查询、历史日志（非实时）查询
 - [ ] Control-plane 透传 sidecar 的 `/query` SSE（统一外部入口 + 鉴权 + 流量控制）
-- [ ] 历史日志（非实时）查询
 - [ ] 容器池/预热机制
 - [ ] Kubernetes 部署支持
 - [ ] Prometheus 监控指标
 - [ ] 容器快照与恢复
 - [ ] 多节点调度
+
+## Admin UI
+
+React + Vite + TypeScript 管理后台，位于 `admin-ui/` 目录。
+
+### 功能
+
+- API Key 登录认证
+- Dashboard 统计面板（容器状态分布 + 最近容器）
+- 容器列表（搜索、状态筛选、排序、分页、删除）
+- 创建容器表单（任务、Skill Repos、资源限制、环境变量）
+- 容器详情 + WebSocket 实时日志流
+- 中英双语（自动检测 + 手动切换）
+- 暗色/亮色主题切换
+
+### 本地开发
+
+```bash
+cd admin-ui
+npm install
+npm run dev      # → http://localhost:5173
+```
+
+Vite dev server 自动代理 `/api` 和 `/health` 到 `localhost:8080`（需同时运行 Control Plane）。
+
+### 生产部署
+
+```bash
+docker compose up -d admin-ui   # → http://localhost:3000
+```
+
+Nginx 反向代理 SPA + API + WebSocket。
 
 ## License
 

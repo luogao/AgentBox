@@ -15,6 +15,7 @@ use axum::{
     routing::{delete, get, post},
     Router,
 };
+use tokio::sync::RwLock;
 use tower_http::cors::CorsLayer;
 
 use config::Config;
@@ -26,7 +27,7 @@ use docker::manager::DockerManager;
 pub struct AppState {
     pub db: Database,
     pub docker_manager: Option<Arc<DockerManager>>,
-    pub config: Config,
+    pub config: Arc<RwLock<Config>>,
     pub log_secrets: Arc<Vec<String>>,
 }
 
@@ -46,6 +47,15 @@ async fn main() {
         .await
         .expect("Failed to connect to database");
 
+    // Load persisted config from DB (overrides env vars)
+    let mut config = config;
+    if let Ok(Some(api_key)) = db.get_config("API_KEY").await {
+        config.api_key = Some(api_key);
+    }
+    if let Ok(Some(anthropic_key)) = db.get_config("ANTHROPIC_API_KEY").await {
+        config.anthropic_api_key = Some(anthropic_key);
+    }
+
     let docker_manager = Arc::new(
         DockerManager::new()
             .await
@@ -60,10 +70,13 @@ async fn main() {
         );
     }
 
+    let server_addr = config.server_addr.clone();
+    let cors = build_cors(&config);
+
     let app_state = AppState {
         db: db.clone(),
         docker_manager: Some(docker_manager.clone()),
-        config: config.clone(),
+        config: Arc::new(RwLock::new(config)),
         log_secrets,
     };
 
@@ -71,8 +84,6 @@ async fn main() {
     tokio::spawn(async move {
         lifecycle_manager.start().await;
     });
-
-    let cors = build_cors(&config);
 
     let app = Router::new()
         .route("/health", get(api::health::health_check))
@@ -93,6 +104,8 @@ async fn main() {
             post(api::containers::report_status),
         )
         .route("/api/stats", get(api::containers::get_stats))
+        .route("/api/setup/status", get(api::setup::system_status))
+        .route("/api/setup/config", post(api::setup::update_config))
         .route(
             "/api/containers/{id}/logs",
             get(api::ws::container_logs_ws),
@@ -104,11 +117,11 @@ async fn main() {
         .layer(cors)
         .with_state(app_state);
 
-    let listener = tokio::net::TcpListener::bind(&config.server_addr)
+    let listener = tokio::net::TcpListener::bind(&server_addr)
         .await
         .expect("Failed to bind");
 
-    tracing::info!("Listening on {}", config.server_addr);
+    tracing::info!("Listening on {}", server_addr);
     axum::serve(listener, app)
         .await
         .expect("Server failed");

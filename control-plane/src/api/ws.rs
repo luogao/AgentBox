@@ -27,7 +27,7 @@ pub async fn container_logs_ws(
     Path(id): Path<String>,
     Query(query): Query<LogsQuery>,
 ) -> Response {
-    if let Some(expected) = &state.config.api_key {
+    if let Some(expected) = &state.config.read().await.api_key {
         match &query.token {
             Some(t) if t == expected => {}
             _ => {

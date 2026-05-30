@@ -27,10 +27,13 @@ pub async fn create_container(
         format!("SKILL_REPOS={}", skill_repos.join(",")),
     ];
 
-    if let Some(api_key) = std::env::var("ANTHROPIC_API_KEY").ok() {
-        let already_set = payload.env.as_ref().map_or(false, |e| e.contains_key("ANTHROPIC_API_KEY"));
-        if !already_set {
-            env_vars.push(format!("ANTHROPIC_API_KEY={}", api_key));
+    {
+        let config = state.config.read().await;
+        if let Some(ref api_key) = config.anthropic_api_key {
+            let already_set = payload.env.as_ref().map_or(false, |e| e.contains_key("ANTHROPIC_API_KEY"));
+            if !already_set {
+                env_vars.push(format!("ANTHROPIC_API_KEY={}", api_key));
+            }
         }
     }
 
@@ -50,10 +53,11 @@ pub async fn create_container(
         .as_ref()
         .ok_or_else(|| AppError::DockerError("Docker not configured".to_string()))?;
 
+    let agent_image = state.config.read().await.agent_image.clone();
     let docker_id = docker_manager
         .create_container(
             &docker_name,
-            &state.config.agent_image,
+            &agent_image,
             env_vars,
             &cpu_limit,
             &memory_limit,

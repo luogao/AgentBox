@@ -64,6 +64,7 @@ impl Container {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct CreateContainerRequest {
     pub task: String,
     pub skill_repos: Option<Vec<String>>,
@@ -84,6 +85,7 @@ pub struct ContainerResponse {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct StatusReport {
     pub status: String,
     pub progress: f32,

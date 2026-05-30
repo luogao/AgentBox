@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/context/auth-context'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from './language-switcher'
+import { ThemeToggle } from './theme-toggle'
 
 const links = [
   { to: '/', labelKey: 'Dashboard', icon: LayoutDashboard },
@@ -45,6 +46,7 @@ export function Sidebar() {
           <div className="px-1">
             <LanguageSwitcher />
           </div>
+          <ThemeToggle />
           <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-foreground" onClick={logout}>
             <LogOut className="mr-2 h-4 w-4" />
             {t('Disconnect')}

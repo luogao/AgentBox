@@ -37,6 +37,19 @@ impl Database {
         .await
         .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
+        sqlx::query(
+            r#"
+            CREATE TABLE IF NOT EXISTS config (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            "#,
+        )
+        .execute(&pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+
         Ok(Self { pool })
     }
 
@@ -219,6 +232,31 @@ impl Database {
             .map_err(|e| AppError::DatabaseError(e.to_string()))?;
 
         Ok(crate::models::container::StatsResponse { total, by_status })
+    }
+
+    pub async fn get_config(&self, key: &str) -> Result<Option<String>, AppError> {
+        let row: Option<(String,)> =
+            sqlx::query_as("SELECT value FROM config WHERE key = ?")
+                .bind(key)
+                .fetch_optional(&self.pool)
+                .await
+                .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+        Ok(row.map(|r| r.0))
+    }
+
+    pub async fn set_config(&self, key: &str, value: &str) -> Result<(), AppError> {
+        let now = chrono::Utc::now().to_rfc3339();
+        sqlx::query(
+            "INSERT INTO config (key, value, updated_at) VALUES (?, ?, ?) \
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at",
+        )
+        .bind(key)
+        .bind(value)
+        .bind(now)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+        Ok(())
     }
 }
 

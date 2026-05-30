@@ -12,10 +12,15 @@ pub async fn api_key_auth(
     request: Request,
     next: Next,
 ) -> Response {
-    let api_key = match &state.config.api_key {
+    let config = state.config.read().await;
+    let api_key = match &config.api_key {
         Some(key) => key.clone(),
-        None => return next.run(request).await,
+        None => {
+            drop(config);
+            return next.run(request).await;
+        }
     };
+    drop(config);
 
     if request.method() == Method::OPTIONS {
         return next.run(request).await;
@@ -61,13 +66,14 @@ mod tests {
         AppState {
             db,
             docker_manager: None,
-            config: Config {
+            config: std::sync::Arc::new(tokio::sync::RwLock::new(Config {
                 database_url: String::new(),
                 server_addr: String::new(),
                 agent_image: String::new(),
                 api_key: api_key.map(String::from),
+                anthropic_api_key: None,
                 allowed_origins: Vec::new(),
-            },
+            })),
             log_secrets: std::sync::Arc::new(Vec::new()),
         }
     }
