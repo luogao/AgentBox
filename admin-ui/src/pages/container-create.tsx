@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Plus, Trash2 } from 'lucide-react'
 import { useCreateContainer } from '@/hooks/use-containers'
 import { useAllSkills } from '@/hooks/use-skills'
+import { useToast } from '@/context/toast-context'
 import { Header } from '@/components/layout/header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -14,6 +15,7 @@ import { Label } from '@/components/ui/label'
 export function CreateContainerPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const toast = useToast()
   const mutation = useCreateContainer()
   const { data: allSkills } = useAllSkills()
 
@@ -81,8 +83,14 @@ export function CreateContainerPage() {
         env: Object.keys(env).length > 0 ? env : undefined,
       },
       {
-        onSuccess: (data) => navigate(`/containers/${data.id}`),
-        onError: (err) => setError(err.message),
+        onSuccess: (data) => {
+          toast.success(t('Container created successfully'))
+          navigate(`/containers/${data.id}`)
+        },
+        onError: (err) => {
+          toast.error(err.message || t('Failed to create container'))
+          setError(err.message)
+        },
       },
     )
   }

@@ -6,6 +6,7 @@ pub struct Config {
     pub server_addr: String,
     pub agent_image: String,
     pub api_key: Option<String>,
+    pub anthropic_api_key: Option<String>,
     pub allowed_origins: Vec<String>,
     pub skills_dir: String,
 }
@@ -37,6 +38,7 @@ impl Config {
             agent_image: env::var("AGENT_IMAGE")
                 .unwrap_or_else(|_| "agent-sandbox:latest".to_string()),
             api_key: env::var("API_KEY").ok().filter(|k| !k.is_empty()),
+            anthropic_api_key: env::var("ANTHROPIC_API_KEY").ok().filter(|k| !k.is_empty()),
             allowed_origins,
             skills_dir: env::var("SKILLS_DIR")
                 .unwrap_or_else(|_| "/data/skills".to_string()),

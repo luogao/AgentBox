@@ -23,6 +23,13 @@ impl DockerManager {
         cpu_limit: &str,
         memory_limit: &str,
     ) -> Result<String, AppError> {
+        if self.docker.inspect_image(image).await.is_err() {
+            return Err(AppError::BadRequest(format!(
+                "Image '{}' not found locally. Run: docker build -t {} -f agent-image/Dockerfile .",
+                image, image
+            )));
+        }
+
         let config = ContainerCreateBody {
             image: Some(image.to_string()),
             env: Some(env_vars),
@@ -70,6 +77,14 @@ impl DockerManager {
 
     pub fn client(&self) -> &Docker {
         &self.docker
+    }
+
+    pub async fn ping(&self) -> bool {
+        self.docker.ping().await.is_ok()
+    }
+
+    pub async fn image_exists(&self, image: &str) -> bool {
+        self.docker.inspect_image(image).await.is_ok()
     }
 
     pub async fn container_exists(&self, name: &str) -> bool {

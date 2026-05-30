@@ -57,7 +57,7 @@ pub async fn create_skill(
     let file_bytes = file_bytes.ok_or_else(|| AppError::BadRequest("file is required".to_string()))?;
 
     let skill_id = uuid::Uuid::new_v4().to_string();
-    let skill_dir = format!("{}/{}", state.config.skills_dir, skill_id);
+    let skill_dir = format!("{}/{}", state.config.read().await.skills_dir, skill_id);
 
     // Create skill directory and extract zip
     tokio::fs::create_dir_all(&skill_dir)
@@ -176,7 +176,7 @@ pub async fn delete_skill(
     State(state): State<AppState>,
     Path(id): Path<String>,
 ) -> Result<StatusCode, AppError> {
-    let skill_dir = format!("{}/{}", state.config.skills_dir, id);
+    let skill_dir = format!("{}/{}", state.config.read().await.skills_dir, id);
 
     state.db.delete_skill(&id).await?;
 

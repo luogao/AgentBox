@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, Search, ChevronLeft, ChevronRight, ArrowUpDown, Trash2 } from 'lucide-react'
 import { useContainers, useDeleteContainer } from '@/hooks/use-containers'
+import { useToast } from '@/context/toast-context'
 import { Header } from '@/components/layout/header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,6 +33,7 @@ export function ContainerListPage() {
     per_page: 20,
   })
   const deleteMutation = useDeleteContainer()
+  const toast = useToast()
 
   const toggleSort = (col: string) => {
     if (sortBy === col) {
@@ -207,7 +209,10 @@ export function ContainerListPage() {
             variant="destructive"
             onClick={() => {
               if (deleteId) {
-                deleteMutation.mutate(deleteId)
+                deleteMutation.mutate(deleteId, {
+                  onSuccess: () => toast.success(t('Container deleted successfully')),
+                  onError: () => toast.error(t('Failed to delete container')),
+                })
                 setDeleteId(null)
               }
             }}
