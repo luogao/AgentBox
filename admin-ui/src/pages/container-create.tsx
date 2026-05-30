@@ -104,7 +104,7 @@ export function CreateContainerPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>{t('Skill Repos')}</Label>
+                <Label className="block">{t('Skill Repos')}</Label>
                 {skillRepos.map((repo, i) => (
                   <div key={i} className="flex gap-2">
                     <Input
